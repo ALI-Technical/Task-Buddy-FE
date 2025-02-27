@@ -3,14 +3,14 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+const socket = io(`${process.env.NEXT_PUBLIC_BASE_APIURL}`);
 
 export default function AdminPanel() {
   const [tasks, setTasks] = useState([]);
   const session: any = useSession();
 
   const fetchAllTasks = async () => {
-    const res = await fetch("http://localhost:5000/api/tasks/getAllTasks", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_APIURL}/api/tasks/getAllTasks`, {
       headers: {
         Authorization: `Bearer ${session?.data?.user?.token}`,
         "Content-Type": "application/json",

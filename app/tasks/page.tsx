@@ -10,7 +10,7 @@ export default function Home() {
 
   const fetchTasks = async () => {
     // Replace with your API endpoint
-    const res = await fetch("http://localhost:5000/api/tasks", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_APIURL}/api/tasks`, {
       headers: { Authorization: `Bearer ${session?.data?.user?.token}` },
     });
     const data = await res.json();
@@ -19,7 +19,7 @@ export default function Home() {
 
   const createTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch("http://localhost:5000/api/tasks", {
+    await fetch(`${process.env.NEXT_PUBLIC_BASE_APIURL}/api/tasks`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

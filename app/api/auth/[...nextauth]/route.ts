@@ -8,7 +8,7 @@ const handler = NextAuth({
       type: "credentials",
       credentials: {},
       async authorize(credentials) {
-        const res = await fetch("http://localhost:5000/api/auth/login", {
+        const res = await fetch(`${process.env.BASE_APIURL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(credentials),

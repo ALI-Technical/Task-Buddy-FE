@@ -1,6 +1,6 @@
 "use client";
 import { signIn, useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Login() {
@@ -9,6 +9,16 @@ export default function Login() {
   const router = useRouter();
   const session: any = useSession();
 
+  useEffect(() => {
+    if (session?.status == "authenticated") {
+      if (session?.data?.user?.user?.role == "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/tasks");
+      }
+    }
+  }, [session?.status]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const result = await signIn("credentials", {
@@ -16,12 +26,12 @@ export default function Login() {
       password,
       redirect: false,
     });
-    console.log(session?.data);
-    if (session?.data?.user?.user?.role == "admin") {
-      router.push("/admin");
-    }
-    else {
+    if (result?.ok) {
+      if (session?.data?.user?.user?.role == "admin") {
+        router.push("/admin");
+      } else {
         router.push("/tasks");
+      }
     }
   };
 

@@ -61,7 +61,7 @@ export default function Home() {
       <div>
         <h2 className="text-xl font-semibold mb-2">Your Tasks</h2>
         <ul>
-          {tasks.map((task: any) => (
+          {Array.isArray(tasks) && tasks?.map((task: any) => (
             <li key={task._id} className="p-2 border rounded mb-2 bg-white">
               <h3 className="font-bold">{task.title}</h3>
               <p>{task.description}</p>

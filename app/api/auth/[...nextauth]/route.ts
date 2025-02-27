@@ -5,14 +5,8 @@ const handler = NextAuth({
   providers: [
     CredentialsProvider({
       name: "Credentials",
-      credentials: {
-        email: {
-          label: "Email",
-          type: "email",
-          placeholder: "example@mail.com",
-        },
-        password: { label: "Password", type: "password" },
-      },
+      type: "credentials",
+      credentials: {},
       async authorize(credentials) {
         const res = await fetch("http://localhost:5000/api/auth/login", {
           method: "POST",
@@ -28,6 +22,9 @@ const handler = NextAuth({
       },
     }),
   ],
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) token.user = user;

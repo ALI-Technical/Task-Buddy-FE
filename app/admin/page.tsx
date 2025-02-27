@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
@@ -11,14 +11,20 @@ export default function AdminPanel() {
 
   const fetchAllTasks = async () => {
     const res = await fetch("http://localhost:5000/api/tasks/getAllTasks", {
-      headers: { Authorization: `Bearer ${session?.data?.user?.token}` },
+      headers: {
+        Authorization: `Bearer ${session?.data?.user?.token}`,
+        "Content-Type": "application/json",
+      },
     });
     const data = await res.json();
     setTasks(data);
   };
 
   useEffect(() => {
+    fetchAllTasks();
+  }, [session.status]);
 
+  useEffect(() => {
     socket.on("newTask", (data) => {
       console.log("New Task received:", data);
       fetchAllTasks(); // Refresh tasks list on new task
@@ -50,15 +56,16 @@ export default function AdminPanel() {
           </tr>
         </thead>
         <tbody>
-          {tasks.map((task: any) => (
-            <tr key={task._id}>
-              <td>{task.title}</td>
-              <td>{task.description}</td>
-              <td>{task.completed ? "Completed" : "Incomplete"}</td>
-            </tr>
-          ))}
+          {Array.isArray(tasks) &&
+            tasks?.map((task: any) => (
+              <tr key={task._id}>
+                <td>{task.title}</td>
+                <td>{task.description}</td>
+                <td>{task.completed ? "Completed" : "Incomplete"}</td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>
   );
-};
+}

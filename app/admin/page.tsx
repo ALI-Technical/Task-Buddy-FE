@@ -5,42 +5,76 @@ import io from "socket.io-client";
 
 const socket = io(`${process.env.NEXT_PUBLIC_BASE_APIURL}`);
 
+interface Task {
+  _id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function AdminPanel() {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const session: any = useSession();
 
   const fetchAllTasks = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_APIURL}/api/tasks/getAllTasks`, {
-      headers: {
-        Authorization: `Bearer ${session?.data?.user?.token}`,
-        "Content-Type": "application/json",
-      },
-    });
-    const data = await res.json();
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_APIURL}/api/tasks/getAllTasks`,
+      {
+        headers: {
+          Authorization: `Bearer ${session?.data?.user?.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data: Task[] = await res.json();
     setTasks(data);
   };
 
   useEffect(() => {
-    fetchAllTasks();
+    if (session.status === "authenticated") {
+      fetchAllTasks();
+    }
   }, [session.status]);
 
   useEffect(() => {
-    socket.on("newTask", (data) => {
-      console.log("New Task received:", data);
-      fetchAllTasks(); // Refresh tasks list on new task
+    socket.on("newTask", (newTask: Task) => {
+      console.log("New Task received:", newTask);
+      setTasks((prevTasks) => [...prevTasks, newTask]);
     });
 
-    socket.on("taskUpdated", (data) => {
-      console.log("Task updated:", data);
-      fetchAllTasks(); // Refresh tasks list on update
+    socket.on("taskUpdated", (updatedTask: Task) => {
+      console.log("Task updated:", updatedTask);
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task._id === updatedTask._id ? updatedTask : task
+        )
+      );
     });
 
-    // Initial data load
-    fetchAllTasks();
+    socket.on(
+      "taskStatusChanged",
+      ({ taskId, completed }: { taskId: string; completed: boolean }) => {
+        console.log("Task status changed:", taskId, completed);
+        setTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task._id === taskId ? { ...task, completed } : task
+          )
+        );
+      }
+    );
+
+    socket.on("taskDeleted", (taskId: string) => {
+      console.log("Task deleted:", taskId);
+      setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
+    });
 
     return () => {
       socket.off("newTask");
       socket.off("taskUpdated");
+      socket.off("taskStatusChanged");
+      socket.off("taskDeleted");
     };
   }, []);
 
@@ -53,17 +87,26 @@ export default function AdminPanel() {
             <th>Title</th>
             <th>Description</th>
             <th>Status</th>
+            <th>Created At</th>
+            <th>Updated At</th>
           </tr>
         </thead>
         <tbody>
-          {Array.isArray(tasks) &&
-            tasks?.map((task: any) => (
+          {tasks.map((task) => {
+            const creationDate = new Date(task.createdAt);
+            const updatedDate = new Date(task.updatedAt);
+            return (
               <tr key={task._id}>
                 <td>{task.title}</td>
                 <td>{task.description}</td>
-                <td>{task.completed ? "Completed" : "Incomplete"}</td>
+                <td className={task.completed ? "text-success" : "text-error"}>
+                  {task.completed ? "Completed" : "Incomplete"}
+                </td>
+                <td>{`${creationDate.getDate()}-${creationDate.getMonth()}-${creationDate.getFullYear()}`}</td>
+                <td>{`${updatedDate.getDate()}-${updatedDate.getMonth()}-${updatedDate.getFullYear()}`}</td>
               </tr>
-            ))}
+            );
+          })}
         </tbody>
       </table>
     </div>

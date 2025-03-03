@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import io from "socket.io-client";
 
-const socket = io(`${process.env.NEXT_PUBLIC_BASE_APIURL}`);
+const socket = io(`${process.env.NEXT_PUBLIC_BASE_APIURL}`, {
+  transports: ["websocket"],
+});
 
 interface Task {
   _id: string;
